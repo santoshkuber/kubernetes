@@ -6,8 +6,8 @@ generate_salt() {
 }
 
 # Read environment variables or set default values
-DB_HOST=${DB_HOST:-db}
-DB_PORT_NUMBER=${DB_PORT_NUMBER:-5432}
+DB_HOST=${DB_HOST:-mysql-0.mysql}
+DB_PORT_NUMBER=${DB_PORT_NUMBER:-3306}
 MM_USERNAME=${MM_USERNAME:-mmuser}
 MM_PASSWORD=${MM_PASSWORD:-mmuser_password}
 MM_DBNAME=${MM_DBNAME:-mattermost}
@@ -48,7 +48,7 @@ if [ "$1" = 'mattermost' ]; then
     jq '.EmailSettings.InviteSalt = "'$(generate_salt)'"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
     jq '.EmailSettings.PasswordResetSalt = "'$(generate_salt)'"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
     jq '.RateLimitSettings.Enable = true' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
-    jq '.SqlSettings.DriverName = "postgres"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
+    jq '.SqlSettings.DriverName = "mysql"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
     jq '.SqlSettings.AtRestEncryptKey = "'$(generate_salt)'"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
     jq '.PluginSettings.Directory = "/mattermost/plugins/"' $MM_CONFIG > $MM_CONFIG.tmp && mv $MM_CONFIG.tmp $MM_CONFIG
 
@@ -58,7 +58,7 @@ if [ "$1" = 'mattermost' ]; then
       echo -ne "Configure database connection..."
       # URLEncode the password, allowing for special characters
       ENCODED_PASSWORD=$(printf %s $MM_PASSWORD | jq -s -R -r @uri)
-      export MM_SQLSETTINGS_DATASOURCE="postgres://$MM_USERNAME:$ENCODED_PASSWORD@$DB_HOST:$DB_PORT_NUMBER/$MM_DBNAME?sslmode=disable&connect_timeout=10"
+      export MM_SQLSETTINGS_DATASOURCE="mysql://$MM_USERNAME:$ENCODED_PASSWORD@$DB_HOST:$DB_PORT_NUMBER/$MM_DBNAME?sslmode=disable&connect_timeout=10"
       echo OK
     else
       echo "Using existing database connection"
